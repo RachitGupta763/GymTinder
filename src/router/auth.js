@@ -9,9 +9,10 @@ const cookieParser = require("cookie-parser");
 authRouter.post("/signUp" , async (req,res) =>{
     
     const {firstName,lastName,email,password} = req.body;
-
+    console.log(email,password); 
     try{
         //validate a user
+    
         ValidateAllField(req);
 
         const requireData=["firstName","lastName","email","password"];
@@ -35,43 +36,39 @@ authRouter.post("/signUp" , async (req,res) =>{
         await user.save();
         res.send("User Added Successfully");
     }catch(err){
-        res.status(400).send("Error in adding user" + err.message);
+        res.status(400).send("Error in adding user : " + err.message);
     }
     
 });
 
 // login api
-authRouter.post("/login",async(req,res) =>{
+authRouter.post("/login",async (req,res) =>{
     const {email,password} = req.body;
-
+     
     try{
         const user = await User.findOne({email:email});
+        
+        if(!user){
+            throw new Error("Invalid Credintial");
+        };
 
-    if(!user){
-        throw new Error("Invalid Credintial");
-    };
-
-    const samePassword = user.validatePassword(password);
-
-    if(samePassword){
-        const token = await jwt.sign({_id:user._id},"DevTinder@Rachitgpt2001",{
-            expiresIn:"7d"
-        });
-
-        res.cookie("token",token,{
-            expires:new Date(Date.now() + 8*360000)
-        });
-        res.send("Login Successful!!!!");
-    }
-    else{
-        throw new Error("Invalid Credintial");
-    }
+        const samePassword =await user.validatePassword(password);
+        if(samePassword){
+            const token = await user.getJWT();
+            res.cookie("token",token,{
+                expires:new Date(Date.now() + 8*360000)
+            });
+            res.send("Login Successful!!!!");
+        }
+        else{
+            throw new Error("Invalid Credintial");
+        }
 
     }catch(err){
         res.status(400).send(err.message);
     }
 });
-
+  
 authRouter.post("/logout",(req,res) =>{
     res.
     cookie("token",null,{

@@ -5,7 +5,7 @@ const ConnectionRequest = require("../models/ConnectionRequest");
 const { default: mongoose } = require("mongoose");
 const requestRouter = express.Router();
 
-//get user profile
+//sending a request
 requestRouter.post("/request/send/:status/:toUserId" , userAuth, async(req,res) =>{
     
     try{
@@ -16,7 +16,7 @@ requestRouter.post("/request/send/:status/:toUserId" , userAuth, async(req,res) 
         //validating our status
         const validRequest = ["ignored","interested"];
         if(!validRequest.includes(status)){
-            res.status(400).json({
+            return res.status(400).json({
                 message : "Invalid Status Type " +status
             });
         }
@@ -37,7 +37,7 @@ requestRouter.post("/request/send/:status/:toUserId" , userAuth, async(req,res) 
                 {fromUserId,toUserId},
                 {fromUserId:toUserId , toUserId:fromUserId}
             ]
-        })
+        });
 
         if(alreadyRequested){
                 return res.status(400).
@@ -54,10 +54,10 @@ requestRouter.post("/request/send/:status/:toUserId" , userAuth, async(req,res) 
 
         const data = await connect.save();
 
-        // res.status(200).json({
-        //     message : req.user.firstName +" is " + status + " you",
-        //     data
-        // })
+        return res.status(200).json({
+            message : req.user.firstName +" is " + status + " you",
+            data
+        })
         }
         else{
             return res.status(404).json({
@@ -66,10 +66,48 @@ requestRouter.post("/request/send/:status/:toUserId" , userAuth, async(req,res) 
         }
 
        
-        res.send("request made")
+       // res.send("request made")
     }catch(err){
         res.status(400).send("Error " + err.message );
     }
 
 });
+ 
+//sending the response of request
+requestRouter.post("/request/recieved/:status/:requestId",userAuth ,async(req,res) =>{
+   try{
+     //we have to check for valid status
+     const {status,requestId} = req.params; 
+     const AllowedStatus = ["accepted" , "rejected"];
+     const loggedInUser = req.user;
+ 
+     if(!AllowedStatus.includes(status)){
+        return res.status(404).json({message : "Invalid Status"});
+     }
+ 
+     // we have to check for requestId
+ 
+     const connectionRequest =await ConnectionRequest.findOne({
+         _id:requestId,
+         toUserId:loggedInUser._id,
+         status:"interested",
+     });
+ 
+     if(!connectionRequest){
+            return res.status(404).json({message : "Invalid Connection Request"});
+     }
+ 
+     connectionRequest.status = status;
+     const data = await connectionRequest.save();
+ 
+     res.status(200).json({
+         message : "Connection Request "+ status,
+         data
+     })
+   }catch(err){
+    res.status(400).send("Error: "+err.message);
+   }
+})
+
+
 module.exports=requestRouter;

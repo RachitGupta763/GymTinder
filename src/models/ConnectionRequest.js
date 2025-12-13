@@ -3,11 +3,13 @@ const mongoose = require("mongoose");
 const connectionRequestSchema = new mongoose.Schema({
     fromUserId:{
         type:mongoose.Schema.Types.ObjectId,
-        required:true 
+        required:true ,
+        ref :"User"
     },
     toUserId:{
         type:mongoose.Schema.Types.ObjectId,
-        required:true 
+        required:true,
+        ref :"User" 
     },
     status:{
         type:String,
@@ -17,10 +19,12 @@ const connectionRequestSchema = new mongoose.Schema({
              message:`{VALUE} is incorrect status type`
         }
     }
-});
+},
+{timestamps:true});
 
 connectionRequestSchema.index({fromUserId:1 , toUserId:1});
 
+//pre is a middleware which run before saving in db.
 connectionRequestSchema.pre("save" ,function(next){
     const connectionRequest = this;
 
