@@ -15,7 +15,10 @@ const server = http.createServer(app)
 
 
 const corsOptions = {
-  origin: 'http://localhost:5173',   // must match your frontend's origin
+  origin:[
+  'http://localhost:5173', // must match your frontend's origin
+  'http://13.62.54.107'  // your deployed frontend
+  ],       
   credentials: true,                 // allow credentials (cookies, headers)
 };
 
