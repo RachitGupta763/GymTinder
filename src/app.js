@@ -8,6 +8,8 @@ const authRouter = require("./router/auth");
 const profileRouter = require("./router/profile");
 const userRouter = require("./router/user")
 const cors = require('cors');
+const dotenv = require("dotenv");
+dotenv.config();
 
 const http = require('http');
 const initializeSocket = require("./utils/socket");
@@ -36,7 +38,7 @@ app.use("/",userRouter);
 
 connectDB().then(() =>{
         console.log("Database Connected Successfully");
-        server.listen(7771,()=>{
+        server.listen(process.env.PORT,()=>{
             console.log("Sever is running at Port 7771");
         });
     })
